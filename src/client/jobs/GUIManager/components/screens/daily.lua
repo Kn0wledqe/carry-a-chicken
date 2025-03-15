@@ -239,6 +239,7 @@ function daily.initialize(HUD): nil
 		end
 		lastTick = now
 
+		--[[
 		if view then
 			local data = dataManager:get("dailyRewards")
 
@@ -254,6 +255,7 @@ function daily.initialize(HUD): nil
 			print(format)
 			dailyRewardsTab:setLabel(format)
 		end
+		]]
 
 		if GUIManager.getCurrentOpened(GUIManager) ~= dailyFrame.Name then
 			return

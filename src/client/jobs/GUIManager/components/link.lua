@@ -23,6 +23,8 @@ local link = {}
 local replicator = requireInitialized("replicator")
 local GUIManager = require(script.Parent.Parent)
 
+local checkpoint = requireInitialized(script.Parent.screens.checkpoint)
+
 --= Classes =--
 
 --= Modules & Config =--
@@ -56,6 +58,7 @@ function link.initialize(HUD): nil
 			task.cancel(thread)
             thread = nil
 		end
+		GUIManager:closeGui("Checkpoint")
 	end, true)
 
 	replicator:listen("linking_manager", function(action, info)
@@ -75,6 +78,11 @@ function link.initialize(HUD): nil
 					countDownText.Text = `{timeLeft}s before starting...`
 				end
 			end)
+
+			if info.worldThereshold then
+				checkpoint.setInfo(info.pair, info.worldThereshold)
+				GUIManager:openGui("Checkpoint")
+			end
 		elseif action == "stopCountdown" then
             print("done! called!")
 			if thread then
@@ -83,9 +91,13 @@ function link.initialize(HUD): nil
 			end
 
 			countDownText.Visible = false
+			print("called")
+			GUIManager:closeGui("Checkpoint")
 		elseif action == "reset" then
 			countDownText.Visible = false
 			exitButton.Visible = false
+
+			GUIManager:closeGui("Checkpoint")
 		end
 	end)
 end

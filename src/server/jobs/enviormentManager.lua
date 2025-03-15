@@ -60,25 +60,32 @@ local function spawnCoins()
 				return
 			end
 
+			local class = requireInitialized("classes/linked").getClassByPlayer(player)
+			if not class then
+				return
+			end
+
 			if claimedCoins[player] and claimedCoins[player][newCoin] then
 				return
 			end
 
-			if not claimedCoins[player] then
-				claimedCoins[player] = {}
+			for _, player in class._players do
+				if not claimedCoins[player] then
+					claimedCoins[player] = {}
+				end
+				claimedCoins[player][newCoin] = true
+
+				dataWrapper.addToCoins(player, 3 * (if dataWrapper.hasVip(player) then 2 else 1))
+				replicator:sendToPlayer("enviorment_manager", player, "claimCoin", { coin = newCoin, visible = false })
 			end
-
-			claimedCoins[player][newCoin] = true
-
-			dataWrapper.addToCoins(player, 3 * (if dataWrapper.hasVip(player) then 2 else 1))
-
-			replicator:sendToPlayer("enviorment_manager", player, "claimCoin", { coin = newCoin, visible = false })
 		end)
 	end
 end
 
 local function initializeProgressIndicators()
-	for _, part in workspace.Spawns:GetDescendants() do
+	local totalGrass = #workspace.Spawns.Grass:GetChildren()
+
+	for _, part: Part in workspace.Spawns:GetDescendants() do
 		if not part:IsA("BasePart") then
 			continue
 		end
@@ -89,13 +96,23 @@ local function initializeProgressIndicators()
 				return
 			end
 
+			local class = requireInitialized("classes/linked").getClassByPlayer(player)
+			if not class then
+				return
+			end
+
+			local worldIndex = part:GetAttribute("_endOfWorld")
+			if worldIndex then
+				class:worldFinished(worldIndex)
+			end
+
+			--[[
 			if part.Name == "Desert_Start" then
-				game:GetService("AnalyticsService"):LogOnboardingFunnelStepEvent(player, 2, "Finished First World")
+				game:GetService("AnalyticsService"):LogOnboardingFunnelStepEvent(player, 3, "Finished First World")
 				badgeManager.awardBadge(player, "FIRST_WORLD")
 			end
 
 			if part.Name == "Desert_End" then
-				game:GetService("AnalyticsService"):LogOnboardingFunnelStepEvent(player, 3, "Finished Second World")
 				badgeManager.awardBadge(player, "SECOND_WORLD")
 
 				local class = requireInitialized("classes/linked").getClassByPlayer(player)
@@ -106,8 +123,19 @@ local function initializeProgressIndicators()
 				class:win()
 				-- game finsihed
 			end
+			]]
 
-			progress[player] = part
+			class.progressPart = part
+			--progress[player] = part
+			local identifierPoint = tonumber(part.Name) + 2 -- 2 for the first two steps(player join and paired up)
+			if part.Parent.Name == "Desert" then
+				identifierPoint += totalGrass
+			end
+
+			for _, player in class._players do
+				game:GetService("AnalyticsService")
+					:LogOnboardingFunnelStepEvent(player, identifierPoint, `Surpassed {part.Parent.Name}_{part.Name}`)
+			end
 		end)
 	end
 end
@@ -122,9 +150,11 @@ function enviormentManager.resetProgress(player: Player)
 	progress[player] = nil
 end
 
+--[[
 function enviormentManager.getProgress(player: Player)
 	return progress[player]
 end
+]]
 
 --= Job Initializers =--
 function enviormentManager:InitAsync(): nil

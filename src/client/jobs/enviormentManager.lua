@@ -22,15 +22,20 @@ local enviormentManager = {}
 --= Jobs =--
 local linkManager = requireInitialized("jobs/linkManager")
 local replicator = requireInitialized("jobs/net/replicator")
---= Classes =--
 
---= Modules & Config =--
+local controlManager = requireInitialized(script.Parent.controlManager)
+
+--= Classes =--
 
 --= Roblox Services =--
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local tweenService = game:GetService("TweenService")
 local replicatedStorage = game:GetService("ReplicatedStorage")
+
+--= Modules & Config =--
+local identiferFunctions = requireInitialized("$utils/identifer")
+local zonePlus = require(replicatedStorage.lib.zone)
 
 --= Object References =--
 local coinsParent = workspace.Coins
@@ -252,7 +257,7 @@ local function handleElevator(model)
 
 	local originalPosition = mainButton.Position
 	local activatedPosition = originalPosition - Vector3.new(0, mainButton.Size.Y / 4, 0)
-
+	local debounce = false
 	mainButton.Touched:Connect(function(otherPart)
 		local character = otherPart.Parent
 		if not character then
@@ -267,6 +272,12 @@ local function handleElevator(model)
 		if player ~= linkManager:getPair() and player ~= players.LocalPlayer then
 			return
 		end
+
+		if debounce then
+			return
+		end
+		debounce = true
+
 		playButtonSound(mainButton)
 		tweenElevator(true)
 		tweenService
@@ -274,8 +285,11 @@ local function handleElevator(model)
 				Position = activatedPosition,
 			})
 			:Play()
+
+		debounce = false
 	end)
 
+	local debounce2 = false
 	mainButton.TouchEnded:Connect(function(otherPart)
 		local character = otherPart.Parent
 		if not character then
@@ -291,12 +305,18 @@ local function handleElevator(model)
 			return
 		end
 
+		if debounce2 then
+			return
+		end
+		debounce2 = true
 		tweenElevator(false)
 		tweenService
 			:Create(mainButton, BUTTON_TWEEN, {
 				Position = originalPosition,
 			})
 			:Play()
+
+		debounce2 = false
 	end)
 end
 
@@ -362,14 +382,15 @@ local function handleCoin(coinModel, visible)
 end
 
 local function attachmentHandler()
+	local lastCframe = nil
 	runService.Heartbeat:Connect(function()
 		if not localPlayer.Character then
 			return
 		end
-		if not localPlayer.Character:FindFirstChild("Torso") then
+		if not localPlayer.Character:FindFirstChild("HumanoidRootPart") then
 			return
 		end
-		local RootPart = localPlayer.Character.Torso
+		local RootPart = localPlayer.Character.HumanoidRootPart
 		local Ignore = localPlayer.Character
 		local ray = Ray.new(RootPart.CFrame.p, Vector3.new(0, -50, 0))
 
@@ -381,19 +402,137 @@ local function attachmentHandler()
 			if lastCframe == nil then
 				lastCframe = platform.CFrame
 			end
-
 			local cframe = platform.CFrame
 
-			local Rel = cframe * lastCframe:inverse()
+			local reverse = cframe * lastCframe:inverse()
 
 			lastCframe = platform.CFrame -- Updated here.
 
-			RootPart.CFrame = Rel * RootPart.CFrame -- Set the player's CFrame
-			--print("set")
+			--local reverse = cframe * lastCframe:inverse()
+			lastCframe = platform.CFrame
+			RootPart.CFrame = reverse * RootPart.CFrame
 		else
 			lastCframe = nil
 		end
 	end)
+end
+
+local function leadUserToPairMakers()
+	local function handleCharacter(character)
+		if identiferFunctions.isLinked() then
+			return
+		end
+
+		local lead = character:FindFirstChild("lead")
+		if not lead then
+			return
+		end
+
+		local rootAttachment = character.HumanoidRootPart:FindFirstChild("RootAttachment")
+		lead.Attachment0 = rootAttachment
+	end
+
+	localPlayer.CharacterAdded:Connect(handleCharacter)
+
+	if localPlayer.Character then
+		handleCharacter(localPlayer.Character)
+	end
+
+	--[[
+	localPlayer:GetAttributeChangedSignal("in_machine"):Connect(function()
+		local in_machine = localPlayer:GetAttribute("in_machine")
+		local lead = localPlayer.Character:FindFirstChild("lead")
+
+		if not lead then
+			return
+		end
+
+		lead.Enabled = not in_machine
+	end)
+	]]
+
+	local zone = zonePlus.new(workspace:WaitForChild("Map"):WaitForChild("arrowDisableHitbox"))
+	zone.playerEntered:Connect(function(player)
+		if localPlayer ~= player then
+			return
+		end
+
+		if not localPlayer.Character then
+			return
+		end
+
+		local lead = localPlayer.Character:FindFirstChild("lead")
+
+		if not lead then
+			return
+		end
+
+		lead.Enabled = false
+	end)
+
+	zone.playerExited:Connect(function(player)
+		if localPlayer ~= player then
+			return
+		end
+
+		if not localPlayer.Character then
+			return
+		end
+
+		local lead = localPlayer.Character:FindFirstChild("lead")
+
+		if not lead then
+			return
+		end
+
+		lead.Enabled = true
+	end)
+end
+
+local function handleDropoffPrompts()
+	local function updatePrompts()
+		for _, dropOff in workspace.Map.Obby.Special.DropPoints:GetChildren() do
+			local hitbox = dropOff.Hitbox
+			if not hitbox then
+				continue
+			end
+
+			local proxmity = hitbox:FindFirstChildOfClass("ProximityPrompt")
+			if not proxmity then
+				proxmity = Instance.new("ProximityPrompt")
+				proxmity.MaxActivationDistance = 10
+				proxmity.RequiresLineOfSight = false
+				proxmity.Enabled = false
+				proxmity.KeyboardKeyCode = Enum.KeyCode.F
+				proxmity.ActionText = "Drop Chicken"
+
+				proxmity.TriggerEnded:Connect(function(playerWhoTriggered)
+					if identiferFunctions.isChicken() then
+						return
+					end
+
+					if not identiferFunctions.isHolding() then
+						proxmity.Enabled = false
+						return
+					end
+
+					controlManager.drop(hitbox.Position)
+				end)
+
+				proxmity.Parent = hitbox
+			end
+
+			local enable = false
+			if identiferFunctions.isHolding() and not identiferFunctions.isChicken() then
+				enable = true
+			end
+
+			proxmity.Enabled = enable
+		end
+	end
+
+	updatePrompts()
+	localPlayer:GetAttributeChangedSignal("holding"):Connect(updatePrompts)
 end
 
 --= Job API =--
@@ -410,6 +549,8 @@ function enviormentManager:InitAsync(): nil
 
 	handleCoinsFloat()
 	attachmentHandler()
+	leadUserToPairMakers()
+	handleDropoffPrompts()
 
 	replicator:listen("enviorment_manager", function(action, arg)
 		if action == "claimCoin" then

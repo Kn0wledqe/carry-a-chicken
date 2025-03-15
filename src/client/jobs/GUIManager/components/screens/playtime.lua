@@ -37,15 +37,12 @@ local runService = game:GetService("RunService")
 
 --= Constants =--
 local CLAIM_BUTTON_PROPERTIES = {
-    CLAIMABLE = {
-        Image = "rbxassetid://125799463084857",
-    },
-    NON_CLAIMABLE = {
-        Image = "rbxassetid://114528142665401",
-
-
-    }
-
+	CLAIMABLE = {
+		Image = "rbxassetid://125799463084857",
+	},
+	NON_CLAIMABLE = {
+		Image = "rbxassetid://114528142665401",
+	},
 }
 
 --= Variables =--
@@ -70,9 +67,9 @@ local function formatToMS(Seconds)
 end
 
 local function setProperties(button, properties)
-    for property, value in properties do
-        button[property] = value
-    end
+	for property, value in properties do
+		button[property] = value
+	end
 end
 
 local function refreshRewards()
@@ -81,7 +78,7 @@ local function refreshRewards()
 		local holder = rewardInfo.instance
 		holder.Claim.Visible = true
 
-        setProperties(holder.Claim, CLAIM_BUTTON_PROPERTIES.CLAIMABLE)
+		setProperties(holder.Claim, CLAIM_BUTTON_PROPERTIES.CLAIMABLE)
 		if rewardInfo.claimed then
 			holder.Claim.TextLabel.Text = "Claimed"
 			holder.Claim.Interactable = false
@@ -91,13 +88,13 @@ local function refreshRewards()
 			holder.Claim.Interactable = true
 			holder.Claim:SetAttribute("_claimable", true)
 		else
-            setProperties(holder.Claim, CLAIM_BUTTON_PROPERTIES.NON_CLAIMABLE)
+			setProperties(holder.Claim, CLAIM_BUTTON_PROPERTIES.NON_CLAIMABLE)
 			local format = if timeLeft >= (60 * 60)
 				then formatToHMS(math.ceil(timeLeft))
 				else formatToMS(math.ceil(timeLeft))
 
-            holder.Claim.TextLabel.Text = format
-            --[[
+			holder.Claim.TextLabel.Text = format
+			--[[
             
 
 			local scale = 1
@@ -105,7 +102,7 @@ local function refreshRewards()
 				scale = 1 - timeLeft / rewardInfo.timemark
 			end
 ]]
-           -- holder.TimerOverlay.TimerBar.Bar.Size = UDim2.fromScale(scale, 1)
+			-- holder.TimerOverlay.TimerBar.Bar.Size = UDim2.fromScale(scale, 1)
 			holder.Claim.Interactable = false
 			holder.Claim:SetAttribute("_claimable", false)
 		end
@@ -119,19 +116,19 @@ function playtime.initialize(HUD): nil
 	local playtimeFrame = HUD.Container.Frames:WaitForChild("Playtime")
 	playtime.frame = playtimeFrame
 
-    local button = HUD.Container.Screen.Buttons["2"].Playtime
+	local button = HUD.Container.Screen.Buttons["2"].Playtime
 
 	repeat
 		task.wait(1)
 		playtime.rewards = replicator:fetchFromServer("session_reward", "getData")
 	until playtime.rewards
 
-    for i, rewardInfo in playtime.rewards do
-        local gift = playtimeFrame.Rewards[i]
-        gift.LayoutOrder = i
-        gift.ImageLabel.Image = helperFunctions.getRewardIcon(rewardInfo.reward.type )
-        gift.TextLabel.Text = rewardInfo.reward.amount
-        gift.Claim.Interactable = false
+	for i, rewardInfo in playtime.rewards do
+		local gift = playtimeFrame.Rewards[i]
+		gift.LayoutOrder = i
+		gift.ImageLabel.Image = helperFunctions.getRewardIcon(rewardInfo.reward.type)
+		gift.TextLabel.Text = rewardInfo.reward.amount
+		gift.Claim.Interactable = false
 		local debounce = false
 		GUIManager.addClick(gift.Claim, function()
 			if not gift.Claim:GetAttribute("_claimable") then
@@ -161,10 +158,9 @@ function playtime.initialize(HUD): nil
 		end, true)
 
 		rewardInfo.instance = gift
+	end
 
-    end
-
-    --[[
+	--[[
 	local parent = sessionRewardsFrame.Clip.Items
 	helperFunctions.cleanChildren(parent, { "BottomSpacer" })
 	for index, rewardInfo in playtime.rewards do
@@ -205,8 +201,6 @@ function playtime.initialize(HUD): nil
 		gift.Parent = parent
 	end
     ]]
-    
-
 
 	local function giftIconStyle()
 		local closestReward, closestIdx, claimableRewards = math.huge, nil, false
@@ -228,14 +222,17 @@ function playtime.initialize(HUD): nil
 		end
 
 		--sessionRewardsButton.Notif.Visible = claimableRewards
+		if claimableRewards then
+			button.Timer.Text = "READY!"
+		else
+			local format = if closestReward >= (60 * 60)
+				then formatToHMS(math.ceil(closestReward))
+				else formatToMS(math.ceil(closestReward))
 
-		local format = if closestReward >= (60 * 60)
-			then formatToHMS(math.ceil(closestReward))
-			else formatToMS(math.ceil(closestReward))
+			button.Timer.Text = format
+		end
 
-        button.Timer.Text = format
-
-	--	sessionRewardsButton.Timer.Text = format
+		--	sessionRewardsButton.Timer.Text = format
 
 		return claimableRewards, closestIdx
 	end

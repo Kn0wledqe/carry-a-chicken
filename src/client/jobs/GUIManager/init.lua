@@ -179,8 +179,14 @@ function GUIManager.initializeFrame(guiName, button)
 		return
 	end
 
+	local info = _getGuiInfo(GUIManager.loadedGui, frame.Name)
+	local closePosiiton = UDim2.fromScale(0.5, 1.5)
+	if info and info.customClosePosition then
+		closePosiiton = info.customClosePosition 
+	end
+
 	frame.Visible = true
-	frame.Position = UDim2.fromScale(0.5, 1.8)
+	frame.Position =closePosiiton-- UDim2.fromScale(0.5, 1.8)
 
 	local closeButton = frame:FindFirstChild("Close")
 	if closeButton then
@@ -290,7 +296,7 @@ function GUIManager:closeGui(ID: string, switching: boolean?)
 	frame:SetAttribute("_open", false)
 	tweenService
 		:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-			Position = UDim2.fromScale(0.5, 1.8),
+			Position = info.customClosePosition or UDim2.fromScale(0.5, 1.5),
 		})
 		:Play()
 end
@@ -309,6 +315,7 @@ function GUIManager:registerGui(gui, script, custom)
 		name = gui.Name,
 		gui = gui,
 		customPosition = custom.position,
+		customClosePosition = custom.closePosition,
 		noBlur = custom.noBlur,
 		script = script,
 	})

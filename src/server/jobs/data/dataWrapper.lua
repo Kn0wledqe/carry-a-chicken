@@ -187,6 +187,20 @@ function dataWrapper.insertPurchaseHistory(Player: Player, purchasedInfo): nil
 	dataWrapper.setPurchaseHistory(Player, purchaseHistory)
 end
 
+--= Selected World =--
+function dataWrapper.getUnlockedWorld(player: Player)
+	return dataManager:Get(player, "worldCompleted")
+end
+
+function dataWrapper.setUnlockedWorld(player: Player, newValue : number)
+	local current = dataWrapper.getUnlockedWorld(player)
+	if current >= newValue then
+		return 
+	end
+
+	dataManager:Set(player, "worldCompleted", newValue, false)
+end
+
 --= Gamepasses =--
 function dataWrapper.getGamepasses(player: Player)
 	return dataManager:Get(player, "gamepasses")

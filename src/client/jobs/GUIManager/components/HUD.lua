@@ -31,6 +31,7 @@ local controlManager = requireInitialized("jobs/controlManager")
 local identiferFunctions = requireInitialized("$utils/identifer")
 
 --= Roblox Services =--
+local avatarEditorService = game:GetService("AvatarEditorService")
 local players = game:GetService("Players")
 
 --= Object References =--
@@ -45,7 +46,7 @@ local localPlayer = players.LocalPlayer
 --= Functions =--
 local function initializeScreenButtons(HUD)
 	local unpairButton = HUD.Container.Screen.Unpair
-	local dropButton = HUD.Container.Screen.DropChicken
+	--local dropButton = HUD.Container.Screen.DropChicken
 	local tutorial = HUD.Container.Screen.Tutorial
 	GUIManager.addHover(unpairButton, nil, nil, true)
 	GUIManager.addClick(unpairButton, function()
@@ -53,27 +54,29 @@ local function initializeScreenButtons(HUD)
 		unpairButton.Visible = false
 	end, true)
 
+	--[[
 	GUIManager.addHover(dropButton, nil, nil, true)
 	GUIManager.addClick(dropButton, function()
 		controlManager.drop()
 	end, true)
+	]]
 
 	localPlayer:GetAttributeChangedSignal("linked"):Connect(function()
-		print(localPlayer, localPlayer:GetAttribute("linked"))
 		local linked = localPlayer:GetAttribute("linked")
 		unpairButton.Visible = linked
 
 		tutorial.Visible = false
-		dropButton.Visible = false
+		--dropButton.Visible = false
 		if linked then
 			if identiferFunctions.isChicken() then
 				tutorial.Visible = true
-			else
-				dropButton.Visible = true
+				--	else
+				--dropButton.Visible = true
 			end
 		end
 	end)
 
+	--[[
 	localPlayer:GetAttributeChangedSignal("holding"):Connect(function()
 		local holding = identiferFunctions.isHolding()
 		if identiferFunctions.isChicken() then
@@ -83,6 +86,7 @@ local function initializeScreenButtons(HUD)
 
 		dropButton.Visible = holding
 	end)
+	]]
 end
 
 --= Job API =--
@@ -119,6 +123,11 @@ function HUD.initialize(HUD): nil
 		end, true)
 	end
 	]]
+
+
+	replicator:listen("favorite_manager", function()
+		avatarEditorService:PromptSetFavorite(game.PlaceId, 1, true)
+	end)
 
 	local function initializeList(list)
 		for _, button: GuiObject in list do

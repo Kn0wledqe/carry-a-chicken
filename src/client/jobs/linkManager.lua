@@ -132,11 +132,11 @@ local function setChickenStats(holdingChicken)
 		return
 	end
 
-	local jumppower = holdingChicken and 1 or 20
-	--local walkspeed = holdingChicken and 0 or 12.433
+	local jumppower = holdingChicken and 0 or 20
+	local walkspeed = holdingChicken and 0 or 12.433
 
 	humanoid.JumpPower = jumppower
-	--humanoid.WalkSpeed = walkspeed
+	humanoid.WalkSpeed = walkspeed
 end
 
 local function setPickGui(enable)

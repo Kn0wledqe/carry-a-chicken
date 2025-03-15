@@ -21,7 +21,7 @@ local deathManager = {}
 
 --= Jobs =--
 local replicator = requireInitialized("jobs/net/replicator")
-local enviormentManager = requireInitialized("jobs/enviormentManager")
+--local enviormentManager = requireInitialized("jobs/enviormentManager")
 local dataWrapper = requireInitialized("jobs/data/dataWrapper")
 --= Classes =--
 local linked = requireInitialized("classes/linked")
@@ -123,8 +123,9 @@ function deathManager:InitAsync(): nil
 
 			dataWrapper.addToRevives(player, -1)
 
-			local progress = enviormentManager.getProgress(class._players.player)
-				or enviormentManager.getProgress(class._players.chicken)
+			--local progress = enviormentManager.getProgress(class._players.player)
+			--	or enviormentManager.getProgress(class._players.chicken)
+			local progress = class.progressPart
 			print(progress)
 			class:spawn(progress)
 		end
@@ -132,9 +133,9 @@ function deathManager:InitAsync(): nil
 
 	players.PlayerAdded:Connect(function(player)
 		player.CharacterAdded:Connect(function(character)
-			character.Humanoid.Died:Connect(function()
-				handlePlayerDeath(player)
-			end)
+			--character.Humanoid.Died:Connect(function()
+			--	handlePlayerDeath(player)
+			--end)
 		end)
 
 		player:LoadCharacter()
@@ -142,9 +143,9 @@ function deathManager:InitAsync(): nil
 
 	for _, player in players:GetPlayers() do
 		player.CharacterAdded:Connect(function(character)
-			character.Humanoid.Died:Connect(function()
-				handlePlayerDeath(player)
-			end)
+			--character.Humanoid.Died:Connect(function()
+			--	handlePlayerDeath(player)
+		--	end)
 		end)
 
 		player:LoadCharacter()

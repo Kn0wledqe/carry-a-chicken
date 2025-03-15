@@ -33,6 +33,8 @@ local badgeManager = requireInitialized("jobs/badgeManager")
 local classify = requireInitialized("$lib/classify")
 local SKINS_CONFIG = requireInitialized("$config/skins")
 
+local collisionManager = requireInitialized("$jobs/collisionManager")
+
 --= Roblox Services =--
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -107,24 +109,29 @@ local function setCollisions(model: Model, enable)
 		end
 
 		if enable then
-			if not part:GetAttribute("_collision") then
-				continue
+			if part:GetAttribute("_collision") then
+				part.CanCollide = part:GetAttribute("_collision")
 			end
 
-			part.CanCollide = enable
+			if part:GetAttribute("_canTouch") then
+				part.CanTouch = part:GetAttribute("_canTouch")
+			end
 		else
-			if not part.CanCollide then
-				continue
+			if part.CanCollide then
+				part:SetAttribute("_collision", true)
+				part.CanCollide = false
 			end
 
-			part:SetAttribute("_collision", true)
-			part.CanCollide = false
+			if part.CanTouch then
+				part:SetAttribute("_canTouch", true)
+				part.CanTouch = false
+			end
 		end
 	end
 end
 
 --= Class Internal =--
-function linked:drop()
+function linked:drop(_, position)
 	local player = self._players.player
 	local chicken = self._players.chicken
 	if not player or not chicken then
@@ -141,6 +148,12 @@ function linked:drop()
 	self:setState(STATES.DROPPED)
 	setNetworkOwnership(chicken.Character, chicken)
 	self:setChickenScale(SCALE_DROPPED)
+
+	task.wait(0.1)
+	if position then
+		chicken.Character:PivotTo(CFrame.new(position))
+	end
+
 	replicator:sendToPlayers("link_manager", { player, chicken }, "dropped")
 end
 
@@ -168,9 +181,12 @@ function linked:setChickenScale(scale)
 end
 
 function linked:setState(state)
+	local chickenHumanoid: Humanoid = self._models.chicken.Humanoid
 	if state == STATES.DROPPED then
 		self._timeDropped = workspace:GetServerTimeNow() + MAXMIUM_DROP
+		chickenHumanoid.EvaluateStateMachine = true
 	elseif state == STATES.PICKED then
+		chickenHumanoid.EvaluateStateMachine = false
 		self._timeDropped = nil
 	end
 
@@ -245,6 +261,7 @@ end
 
 function linked:cleanup()
 	self._pair = 0
+	self._timeDropped = nil
 
 	for _, player in self._players do
 		player:LoadCharacter()
@@ -273,6 +290,7 @@ function linked:spawnCharacters()
 	local skinID = dataWrapper.getEquippedSkin(targetPlayer) or 1
 	local newChicken: Model = getSkinModelFromID(skinID):Clone()
 	newChicken:SetAttribute("Chicken", true)
+	collisionManager.setGroup(newChicken, collisionManager.GROUPS.CHICKEN)
 
 	animateScript:Clone().Parent = newChicken
 	--featherVFXScript:Clone().Parent = newChicken
@@ -288,7 +306,6 @@ function linked:spawnCharacters()
 	targetPlayer:SetAttribute("isChicken", true)
 	task.wait(0.5)
 	targetPlayer.Character = newChicken
-
 	newChicken.Parent = workspace
 
 	self._models.chicken = newChicken
@@ -313,6 +330,60 @@ function linked:_updateFeatherVFX()
 	end
 end
 
+function linked:worldFinished(worldID)
+	local worldIndexs = {
+		{
+			--funnel_identifier = { 3, "Finished First World" },
+			badge = "FIRST_WORLD",
+			coins = 25,
+		},
+
+		{
+			--funnel_identifier = { 4, "Finished Second World" },
+			badge = "SECOND_WORLD",
+			coins = 50,
+			won = true,
+		},
+	}
+
+	local worldInfo = worldIndexs[worldID]
+	if not worldInfo then
+		return
+	end
+
+	if self.worldProgress and self.worldProgress >= worldID then
+		return
+	end
+
+	self.worldProgress = worldID
+	for _, player in self._players do
+		if worldInfo.badge then
+			badgeManager.awardBadge(player, worldInfo.badge)
+		end
+
+		if worldInfo.funnel_identifier then
+			game:GetService("AnalyticsService")
+				:LogOnboardingFunnelStepEvent(player, worldInfo.funnel_identifier[1], worldInfo.funnel_identifier[2])
+		end
+
+		if worldInfo.coins then
+			dataWrapper.addToCoins(player, worldInfo.coins * (if dataWrapper.hasVip(player) then 2 else 1))
+		end
+
+		if worldInfo.won then
+			dataWrapper.addToWins(player, 1)
+		end
+
+		dataWrapper.setUnlockedWorld(player, worldID)
+	end
+
+	if worldInfo.won then
+		--self:win()
+		self:Destroy()
+	end
+end
+
+--[[
 function linked:win()
 	for _, player in self._players do
 		if not player then
@@ -322,11 +393,13 @@ function linked:win()
 		pcall(function()
 			dataWrapper.addToWins(player, 1)
 			dataWrapper.addToCoins(player, 50 * (if dataWrapper.hasVip(player) then 2 else 1))
+			game:GetService("AnalyticsService"):LogOnboardingFunnelStepEvent(player, 4, "Finished Second World")
 		end)
 	end
 
 	self:Destroy()
 end
+]]
 
 function linked:spawn(spawn)
 	self:cleanup()
@@ -361,7 +434,7 @@ function linked.getClassByPlayer(_player): any
 end
 
 --= Class Constructor =--
-function linked.new(player, chicken, spawn): any
+function linked.new(player, chicken, progress, spawn): any
 	local self = classify(linked)
 
 	self._players = {
@@ -374,7 +447,7 @@ function linked.new(player, chicken, spawn): any
 		enviormentManager.resetProgress(player)
 
 		pcall(function()
-			analyticsService:LogOnboardingFunnelStepEvent(player, 1, "Paired Up")
+			analyticsService:LogOnboardingFunnelStepEvent(player, 2, "Paired Up")
 			badgeManager.awardBadge(player, "PAIRED_UP")
 		end)
 	end
@@ -393,7 +466,8 @@ function linked.new(player, chicken, spawn): any
 	chicken:SetAttribute("linked", true)
 
 	table.insert(linkedClasses, self)
-	self:spawn()
+	self.worldProgress = progress
+	self:spawn(spawn)
 
 	task.spawn(function()
 		local lastFeatherCall = os.clock()
@@ -453,8 +527,12 @@ players.PlayerRemoving:Connect(function(_player)
 	end
 end)
 
+players.PlayerAdded:Connect(function(player)
+	game:GetService("AnalyticsService"):LogOnboardingFunnelStepEvent(player, 1, "Player Joined")
+end)
+
 local allowedFunctions = { "drop", "grab", "unpair" }
-replicator:listen("link_manager", function(player: Player, action)
+replicator:listen("link_manager", function(player: Player, action, ...)
 	local class = linked.getClassByPlayer(player)
 	if not class then
 		print("[LINKED] PLAYER NOT LINKED")
@@ -475,7 +553,7 @@ replicator:listen("link_manager", function(player: Player, action)
 		return
 	end
 
-	actionFunc(class, player)
+	actionFunc(class, player, ...)
 end)
 
 --= Class Properties =--

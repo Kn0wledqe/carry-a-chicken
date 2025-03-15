@@ -28,6 +28,7 @@ local players = game:GetService("Players")
 --= Jobs =--
 local smoothTween = requireInitialized(replicatedStorage.jobs.smoothTween)
 local replicator = requireInitialized("replicator")
+local dataWrapper = requireInitialized("jobs/data/dataWrapper")
 
 --= Classes =--
 local linkedClass = requireInitialized("classes/linked")
@@ -60,9 +61,12 @@ local MATERIALS = {
 }
 
 local DOOR_TWEEN = TweenInfo.new(1.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-local START_AFTER = 5
+local START_AFTER = 10 --5
+
+local CHECK_POINTS = requireInitialized("$config/checkpoints")
 
 --= Variables =--
+local selectedWorlds = {}
 
 --= Shorthands =--
 
@@ -156,13 +160,18 @@ local function handleLinker(model)
 			return
 		end
 
+		local worldUnlocked =
+			math.min(dataWrapper.getUnlockedWorld(players.chicken), dataWrapper.getUnlockedWorld(players.player))
+		print("worldUnlocked", worldUnlocked)
 		local timeToStart = os.time() + START_AFTER
-		replicator:sendToPlayers(
+		replicator:sendToPlayer("linking_manager", players.chicken, "startCountdown", { startsOn = timeToStart })
+		replicator:sendToPlayer(
 			"linking_manager",
-			{ players.chicken, players.player },
+			players.player,
 			"startCountdown",
-			{ startsOn = timeToStart }
+			{ startsOn = timeToStart, pair = players.chicken, worldThereshold = worldUnlocked }
 		)
+
 		while task.wait() do
 			local timeLeft = math.max(0, timeToStart - os.time())
 			if timeLeft == 0 then
@@ -183,9 +192,18 @@ local function handleLinker(model)
 		for _, player in players do
 			player.Character.HumanoidRootPart.Anchored = false
 		end
-		print("linked")
+
+		local selectedIndex = selectedWorlds[players.player] or 1
+		local selectedWorld = CHECK_POINTS[selectedIndex]
+		local world
+
+	
+		if selectedIndex and selectedWorld then
+			world = selectedWorld.spawnPoint
+		end
+	
 		replicator:sendToPlayers("linking_manager", { players.chicken, players.player }, "reset")
-		linkedClass.new(players.player, players.chicken)
+		linkedClass.new(players.player, players.chicken, selectedIndex, world)
 	end
 
 	local function handlePlatform(hitbox, name, glass)
@@ -195,8 +213,11 @@ local function handleLinker(model)
 				return
 			end
 
+			selectedWorlds[player] = nil
+
 			players[name] = player
 			updateAppearance()
+			player:SetAttribute("in_machine", true)
 
 			player.Character.HumanoidRootPart.Anchored = true
 			player.Character.HumanoidRootPart.CFrame = hitbox:FindFirstChild("Position").WorldCFrame
@@ -209,6 +230,7 @@ local function handleLinker(model)
 
 		zone.playerExited:Connect(function(player)
 			players[name] = nil
+			player:SetAttribute("in_machine", false)
 			updateAppearance()
 
 			smoothTween.play(glass, DOOR_TWEEN, glassData[glass].contracted)
@@ -232,6 +254,10 @@ function linksManager:InitAsync(): nil
 			player.Character.HumanoidRootPart.Anchored = false
 			player.Character.HumanoidRootPart.CFrame = teleportToOnExit.CFrame
 		end
+	end)
+
+	replicator:listen("checkpoint_manager", function(player: Player, index: number)
+		selectedWorlds[player] = index
 	end)
 end
 

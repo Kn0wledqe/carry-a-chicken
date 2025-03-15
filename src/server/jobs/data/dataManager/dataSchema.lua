@@ -6,6 +6,8 @@ return {
 	spins = 0,
 	lastAwardedSpin = 0,
 
+	worldCompleted = 1,
+
 	nukes = 0,
 	invites = 0,
 

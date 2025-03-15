@@ -62,7 +62,7 @@ end
 
 local function initializeChickenControls()
 	local function onJumpRequest()
-		print("jumpping yo")
+		--print("jumpping yo")
 		if not identiferFunctions.isChicken() then
 			return
 		end
@@ -84,20 +84,24 @@ local function initializeChickenControls()
 				input.KeyCode == Enum.KeyCode.Space
 				or input.KeyCode == Enum.KeyCode.ButtonA
 				or input.KeyCode == Enum.KeyCode.ButtonX
+				or input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch
+
 			)
 		then
 			return
 		end
 
-		onJumpRequest()
+			onJumpRequest()
 	end)
-
+	--[[
 	if userInputService.TouchEnabled then
 		local JumpButton: ImageButton =
 			localPlayer.PlayerGui:WaitForChild("TouchGui"):WaitForChild("TouchControlFrame"):WaitForChild("JumpButton")
 
 		JumpButton.MouseButton1Click:Connect(onJumpRequest)
 	end
+	]]
 end
 
 local function initializeDrop()
@@ -153,7 +157,7 @@ local function initializeJumpReseter()
 end
 
 --= Job API =--
-function controlManager.drop()
+function controlManager.drop(position)
 	if identiferFunctions.isChicken() then
 		return
 	end
@@ -162,14 +166,14 @@ function controlManager.drop()
 		return
 	end
 
-	replicator:sendToServer("link_manager", "drop")
+	replicator:sendToServer("link_manager", "drop", position)
 end
 
 --= Job Initializers =--
 function controlManager:InitAsync(): nil
 	initializeChickenControls()
 	initializeJumpReseter()
-	initializeDrop()
+	--initializeDrop()
 
 	--= Jump functionality =--
 	local lastJumpTime = 0

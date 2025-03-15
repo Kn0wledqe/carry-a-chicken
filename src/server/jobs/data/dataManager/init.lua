@@ -32,6 +32,7 @@ local Players = game:GetService("Players")
 
 --= Constants =--
 local StoreKey = "PlayerData_"
+
 local DataVersion = 1
 
 local BLACKLISTED_IDS = {}
@@ -41,7 +42,7 @@ local BLACKLISTED_IDS = {}
 --= Variables =--
 local ProfileCache = {}
 
-local MockStore = false
+local MockStore = true
 
 local GameStore = nil
 
