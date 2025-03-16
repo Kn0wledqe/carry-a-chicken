@@ -61,7 +61,7 @@ local MATERIALS = {
 }
 
 local DOOR_TWEEN = TweenInfo.new(1.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-local START_AFTER = 10 --5
+local START_AFTER = 5
 
 local CHECK_POINTS = requireInitialized("$config/checkpoints")
 
@@ -229,6 +229,10 @@ local function handleLinker(model)
 		end)
 
 		zone.playerExited:Connect(function(player)
+			if players[name] ~= player then
+				return
+			end
+
 			players[name] = nil
 			player:SetAttribute("in_machine", false)
 			updateAppearance()

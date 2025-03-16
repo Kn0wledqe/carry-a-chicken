@@ -170,12 +170,13 @@ function daily.initialize(HUD): nil
 
 	GUIManager.initializeFrame("Daily")
 
-	local dailyRewardsTab = topBarGui.new():setImage("rbxassetid://134175662556491") --:setLabel("Daily Gifts")
+	local dailyRewardsTab = topBarGui.new():align("Right"):setImage("rbxassetid://134175662556491") --:setLabel("Daily Gifts")
+	
 	dailyRewardsTab.selected:Connect(function()
 		GUIManager:openGui("Daily")
 	end)
 
-	local friendsTab = topBarGui.new():setImage("rbxassetid://110845292682416")
+	local friendsTab = topBarGui.new():align("Right"):setImage("rbxassetid://110845292682416")
 	friendsTab.selected:Connect(_promptFriends)
 
 	--[[

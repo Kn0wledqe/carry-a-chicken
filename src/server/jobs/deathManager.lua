@@ -133,9 +133,9 @@ function deathManager:InitAsync(): nil
 
 	players.PlayerAdded:Connect(function(player)
 		player.CharacterAdded:Connect(function(character)
-			--character.Humanoid.Died:Connect(function()
-			--	handlePlayerDeath(player)
-			--end)
+			character.Humanoid.Died:Connect(function()
+				deathManager.handlePlayerDeath(player)
+			end)
 		end)
 
 		player:LoadCharacter()
@@ -143,9 +143,9 @@ function deathManager:InitAsync(): nil
 
 	for _, player in players:GetPlayers() do
 		player.CharacterAdded:Connect(function(character)
-			--character.Humanoid.Died:Connect(function()
-			--	handlePlayerDeath(player)
-		--	end)
+			character.Humanoid.Died:Connect(function()
+				deathManager.handlePlayerDeath(player)
+			end)
 		end)
 
 		player:LoadCharacter()
