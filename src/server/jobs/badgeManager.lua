@@ -57,17 +57,21 @@ function badgeManager.awardBadge(player: Player, name: string)
 	end)
 end
 
+
 --= Job Initializers =--
 function badgeManager:InitAsync(): nil
 	game.Players.PlayerAdded:Connect(function(player)
 		local hasDeveloper = false
 		for _, player: Player in game.Players:GetPlayers() do
+			--print(player.UserId, player, table.find(DEVELOPER_USERIDS, player.UserId))
 			if not table.find(DEVELOPER_USERIDS, player.UserId) then
 				continue
 			end
 
 			hasDeveloper = true
 			break
+
+			
 		end
 
 		if not hasDeveloper then
@@ -75,7 +79,7 @@ function badgeManager:InitAsync(): nil
 		end
 
 		for _, player in Players:GetPlayers() do
-			badgeManager.awardBadge(player, badge.MEET_A_DEVELOPER)
+			badgeManager.awardBadge(player, "MEET_A_DEVELOPER")
 		end
 	end)
 end

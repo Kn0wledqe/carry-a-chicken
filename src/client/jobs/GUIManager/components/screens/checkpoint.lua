@@ -26,8 +26,8 @@ local replicator = requireInitialized("jobs/net/replicator")
 --= Classes =--
 
 --= Modules & Config =--
-local CHECK_POINTS = requireInitialized("$config/checkpoints")
 local helperFunctions = requireInitialized("utils/helperFunctions")
+local CHECK_POINTS = requireInitialized("$config/checkpoints")
 
 --= Roblox Services =--
 
@@ -61,18 +61,18 @@ local function updateCheckpoints()
 end
 
 --= Job API =--
-function checkpoint.setInfo(pair : Player, index: number)
+function checkpoint.setInfo(pair: Player, index: number)
 	worldIndex = index
 
-    checkpoint.frame:FindFirstChild("Name").Text = pair.Name
-    checkpoint.frame.Avatar.Image = `rbxthumb://type=AvatarHeadShot&id={pair.UserId}&w=420&h=420`
+	checkpoint.frame:FindFirstChild("Name").Text = pair.Name
+	checkpoint.frame.Avatar.Image = `rbxthumb://type=AvatarHeadShot&id={pair.UserId}&w=420&h=420`
 end
 
 --= Job Initializers =--
 function checkpoint.initialize(HUD): nil
 	local checkPointFrame = HUD.Container.Frames:WaitForChild("Checkpoint")
 
-    checkpoint.frame = checkPointFrame
+	checkpoint.frame = checkPointFrame
 	checkpoint.parent = checkPointFrame.Checkpoint
 	checkpoint.template = checkpoint.parent.Template
 	checkpoint.template.Parent = nil
@@ -82,6 +82,7 @@ function checkpoint.initialize(HUD): nil
 end
 
 function checkpoint.onOpened(): nil
+
 	selectedIndex = 1
 	for index, info in CHECK_POINTS do
 		print(worldIndex, index)
@@ -105,6 +106,7 @@ function checkpoint.onOpened(): nil
 			updateCheckpoints()
 		end)
 		newCheckpoint.Parent = checkpoint.parent
+
 		table.insert(checkpointFrames, newCheckpoint)
 	end
 

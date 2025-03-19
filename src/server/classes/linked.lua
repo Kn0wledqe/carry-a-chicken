@@ -351,11 +351,18 @@ function linked:worldFinished(worldID)
 		return
 	end
 
-	if self.worldProgress and self.worldProgress >= worldID then
+	if self._worldProgress > worldID or self._worldProgress + 1 < worldID then
 		return
 	end
 
-	self.worldProgress = worldID
+	if self._worldRewards[worldID] then
+		return
+	end
+
+	print("rewarding", worldID)
+
+	self._worldRewards[worldID] = true
+	self._worldProgress = worldID
 	for _, player in self._players do
 		if worldInfo.badge then
 			badgeManager.awardBadge(player, worldInfo.badge)
@@ -451,13 +458,13 @@ function linked.new(player, chicken, progress, spawn): any
 			badgeManager.awardBadge(player, "PAIRED_UP")
 		end)
 	end
-
 	self:_protect("_players")
 
 	self._spawn = nil
 	self:_protect("_spawn")
 
 	self._welds = {}
+	self._worldRewards = {}
 	self._lastTimerUpdate = 0
 	self._models = {}
 	--print(self)
@@ -466,7 +473,12 @@ function linked.new(player, chicken, progress, spawn): any
 	chicken:SetAttribute("linked", true)
 
 	table.insert(linkedClasses, self)
-	self.worldProgress = progress
+	self._worldProgress = progress
+	self:_protect("_worldProgress")
+	self:_protect("progressPart")
+
+	
+
 	self:spawn(spawn)
 
 	task.spawn(function()
@@ -475,6 +487,7 @@ function linked.new(player, chicken, progress, spawn): any
 			pcall(function()
 				self:_updateTimer()
 			end)
+
 
 			if os.clock() - lastFeatherCall < 0.2 then
 				continue

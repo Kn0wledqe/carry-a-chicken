@@ -121,4 +121,14 @@ return {
 		render_image = "rbxassetid://77146525063575",
 		name = "volcanoChicken",
 	},
+
+	{ -- Join group + like the game
+		ID = 14,
+		title = "King Chicken",
+		purchaseable = false,
+		layoutOrder = 2,
+		purchase_text = "Join the group and like the game!",
+		--render_image = "rbxassetid://110957986752508",
+		name = "kingChicken",
+	},
 }

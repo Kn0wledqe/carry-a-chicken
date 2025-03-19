@@ -27,6 +27,8 @@ local notificationManager = requireInitialized(script.Parent.Parent.notification
 local dataManager = requireInitialized("jobs/dataManager")
 local replicator = requireInitialized("jobs/net/replicator")
 
+local soundManager = requireInitialized("jobs/soundManager")
+
 --= Classes =--
 
 --= Modules & Config =--
@@ -84,9 +86,10 @@ end
 --= Job Initializers =--
 function initializeSkinStands()
 	for _, skinItem in skinStands:GetChildren() do
+		
 		local info = SKINS_CONFIG[tonumber(skinItem.Name)]
 		if not info then
-			return
+			continue
 		end
 
 		local proxmityPrompt: ProximityPrompt =
@@ -99,6 +102,45 @@ function initializeSkinStands()
 		end)
 		--skinStandsPrompts[info.ID] = { proxmityPrompt, {} }
 	end
+
+	local groupStand = skinStands:WaitForChild("GroupStand")
+	local groupStandPrompt: ProximityPrompt =
+		groupStand:WaitForChild("Main"):WaitForChild("Attachment"):WaitForChild("ProximityPrompt")
+	groupStandPrompt.TriggerEnded:Connect(function(playerWhoTriggered)
+		local sucess, message = replicator:fetchFromServer("activity_reward")
+
+		if sucess then
+			soundManager:playSound("Reward")
+			notificationManager.notify(message, nil, {
+				["Content"] = {
+					TextColor3 = Color3.fromRGB(75, 255, 96),
+					RichText = false,
+				},
+				["Content/UIStroke"] = {
+					Thickness = 2,
+					Color = Color3.fromRGB(0, 0, 0), --Color3.fromRGB(41, 141, 53),
+				},
+				["Content/UIGradient"] = {
+					Enabled = false,
+				},
+			})
+		else
+			soundManager:playSound("Error")
+			notificationManager.notify(`⚠️ {message} ⚠️`, nil, {
+				["Content"] = {
+					TextColor3 = Color3.fromRGB(221, 30, 75),
+					RichText = false,
+				},
+				["Content/UIStroke"] = {
+					Thickness = 2,
+					Color = Color3.fromRGB(0, 0, 0), --Color3.fromRGB(41, 141, 53),
+				},
+				["Content/UIGradient"] = {
+					Enabled = false,
+				},
+			})
+		end
+	end)
 end
 
 function skins.initialize(HUD): nil
@@ -173,6 +215,10 @@ function skins.refresh(ignoreOpen)
 			end
 
 			skinTemplate.Skin.ImageColor3 = VIEWFRAME_COLOR.NOT_OWNED
+		end
+
+		if skin.layoutOrder then
+			skinTemplate.LayoutOrder = skin.layoutOrder
 		end
 
 		local skin_model = skinsFolder:FindFirstChild(skin.name)

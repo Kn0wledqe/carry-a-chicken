@@ -101,6 +101,10 @@ local function initializeProgressIndicators()
 				return
 			end
 
+			if class.progressPart == part then
+				return
+			end
+
 			local worldIndex = part:GetAttribute("_endOfWorld")
 			if worldIndex then
 				class:worldFinished(worldIndex)
@@ -133,6 +137,7 @@ local function initializeProgressIndicators()
 			end
 
 			for _, player in class._players do
+				print("Surpassed", part.Parent.Name, part.Name)
 				game:GetService("AnalyticsService")
 					:LogOnboardingFunnelStepEvent(player, identifierPoint, `Surpassed {part.Parent.Name}_{part.Name}`)
 			end

@@ -25,6 +25,8 @@ local replicator = requireInitialized("replicator")
 local linkManager = requireInitialized("jobs/linkManager")
 local soundManager = requireInitialized("jobs/soundManager")
 
+local tutorialGui = requireInitialized("jobs/GUIManager/components/screens/tutorial")
+
 --= Classes =--
 
 --= Modules & Config =--
@@ -36,6 +38,9 @@ local players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local userInputService = game:GetService("UserInputService")
 local contextActionService = game:GetService("ContextActionService")
+
+local tweenService = game:GetService("TweenService")
+
 
 --= Object References =--
 local localPlayer = players.LocalPlayer
@@ -61,6 +66,7 @@ local function getJumpVelocity()
 end
 
 local function initializeChickenControls()
+
 	local function onJumpRequest()
 		--print("jumpping yo")
 		if not identiferFunctions.isChicken() then
@@ -72,6 +78,7 @@ local function initializeChickenControls()
 		end
 
 		replicator:sendToServer("control_manager", "jump")
+		tutorialGui.onJumped()
 	end
 
 	userInputService.InputBegan:Connect(function(input, gameProccesedEvent)
@@ -92,8 +99,10 @@ local function initializeChickenControls()
 			return
 		end
 
-			onJumpRequest()
+		onJumpRequest()
 	end)
+
+	
 	--[[
 	if userInputService.TouchEnabled then
 		local JumpButton: ImageButton =

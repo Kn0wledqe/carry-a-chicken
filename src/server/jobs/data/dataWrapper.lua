@@ -231,8 +231,8 @@ function dataWrapper.setSkins(player: Player, newValue)
 end
 
 function dataWrapper.doesOwnSkin(player: Player, skinID: number): boolean
-	local weapons = dataWrapper.getSkins(player)
-	return table.find(weapons, skinID)
+	local skins = dataWrapper.getSkins(player)
+	return table.find(skins, skinID)
 end
 
 function dataWrapper.insertSkin(Player: Player, skinID): nil

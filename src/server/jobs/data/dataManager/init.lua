@@ -42,7 +42,7 @@ local BLACKLISTED_IDS = {}
 --= Variables =--
 local ProfileCache = {}
 
-local MockStore = true
+local MockStore = false
 
 local GameStore = nil
 

@@ -320,15 +320,12 @@ local function handleElevator(model)
 	end)
 end
 
+--[[
 local function handleCoinsFloat()
 	for _, coin in coinsParent:GetChildren() do
 		local height = 0
 		local direction = 1
 		runService.Heartbeat:Connect(function(deltaTime: number)
-			if coin:GetAttribute("hidden") then
-				return
-			end
-
 			local rotationAmount = rotationSpeed * deltaTime
 			local rotationCFrame = CFrame.Angles(0, rotationAmount, 0)
 
@@ -341,13 +338,48 @@ local function handleCoinsFloat()
 				direction = 1
 			end
 
+			if coin:GetAttribute("hidden") then
+				return
+			end
 			coin:PivotTo(coin:GetPivot() * rotationCFrame * CFrame.new(0, height, 0))
 		end)
 	end
 end
+]]
+
+
+local function handleCoinsFloat()
+	for _, coin in coinsParent:GetChildren() do
+		coin:SetAttribute("_originalPivot", coin:GetPivot())
+	end
+
+	local height = 0
+	local direction = 1
+	runService.Heartbeat:Connect(function(deltaTime: number)
+		local rotationAmount = rotationSpeed * deltaTime
+		local rotationCFrame = CFrame.Angles(0, rotationAmount, 0)
+
+		height += (moveSpeed * direction * deltaTime)
+		if height >= maxHeight then
+			height = maxHeight
+			direction = -1
+		elseif height <= minHeight then
+			height = minHeight
+			direction = 1
+		end
+
+		for _, coin in coinsParent:GetChildren() do
+			if coin:GetAttribute("hidden") then
+				continue
+			end
+			coin:PivotTo(coin:GetPivot() * rotationCFrame * CFrame.new(0, height, 0))
+		end
+	end)
+end
+
 
 local function handleCoin(coinModel, visible)
-	coinModel:SetAttribute("hidden", visible)
+	coinModel:SetAttribute("hidden", not visible)
 	local explotionVFX = coinModel.Outer.CoinExplosion
 
 	for _, part in coinModel:GetChildren() do
@@ -558,10 +590,13 @@ function enviormentManager:InitAsync(): nil
 		elseif action == "resetCoins" then
 			for _, coin in coinsParent:GetChildren() do
 				handleCoin(coin, true)
+				coin:PivotTo(coin:GetAttribute("_originalPivot"))
 			end
 		end
 	end)
 end
 
+
 --= Return Job =--
 return enviormentManager
+

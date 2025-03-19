@@ -34,6 +34,7 @@ collisionManager.GROUPS = {
 	PLAYER = "Player",
 	CHICKEN = "Chicken",
 	CHICKEN_AREA = "ChickenOnlyArea",
+	PLAYER_AREA = "PlayerOnlyArea",
 }
 
 --= Variables =--
@@ -89,6 +90,17 @@ function collisionManager:InitAsync(): nil
 		true
 	)
 	physicsService:CollisionGroupSetCollidable(collisionManager.GROUPS.CHICKEN, collisionManager.GROUPS.PLAYER, false)
+
+	physicsService:CollisionGroupSetCollidable(
+		collisionManager.GROUPS.CHICKEN,
+		collisionManager.GROUPS.PLAYER_AREA,
+		true
+	)
+	physicsService:CollisionGroupSetCollidable(
+		collisionManager.GROUPS.PLAYER,
+		collisionManager.GROUPS.PLAYER_AREA,
+		false
+	)
 
 	players.PlayerAdded:Connect(function(player)
 		player.CharacterAdded:Connect(function(character)
