@@ -24,6 +24,7 @@ local linkManager = requireInitialized("jobs/linkManager")
 local replicator = requireInitialized("jobs/net/replicator")
 
 local controlManager = requireInitialized(script.Parent.controlManager)
+local soundManager = requireInitialized("jobs/soundManager")
 
 --= Classes =--
 
@@ -41,11 +42,15 @@ local zonePlus = require(replicatedStorage.lib.zone)
 local coinsParent = workspace.Coins
 local coinColideSFX = replicatedStorage.assets.audio.CoinCollide
 
+local checkPointReachedEffect = replicatedStorage.assets.effects.Checkpoint
+
 local localPlayer = players.LocalPlayer
 
 local soundButton = Instance.new("Sound")
 soundButton.Name = "ClickSound"
 soundButton.SoundId = "rbxassetid://16480552135"
+
+local checkPointFlags = {}
 
 --= Constants =--
 local BUTTON_TWEEN = TweenInfo.new(2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, 0, false)
@@ -347,7 +352,6 @@ local function handleCoinsFloat()
 end
 ]]
 
-
 local function handleCoinsFloat()
 	for _, coin in coinsParent:GetChildren() do
 		coin:SetAttribute("_originalPivot", coin:GetPivot())
@@ -376,7 +380,6 @@ local function handleCoinsFloat()
 		end
 	end)
 end
-
 
 local function handleCoin(coinModel, visible)
 	coinModel:SetAttribute("hidden", not visible)
@@ -567,6 +570,53 @@ local function handleDropoffPrompts()
 	localPlayer:GetAttributeChangedSignal("holding"):Connect(updatePrompts)
 end
 
+local function handleFlag(index, raised)
+	local flag = checkPointFlags[index]
+	print(index, flag, raised)
+	if not flag then
+		return
+	end
+
+	for _, part in flag:GetChildren() do
+		if part.Name ~= "FlagPart" then
+			continue
+		end
+
+		part.BrickColor = raised and BrickColor.Green() or BrickColor.Red()
+	end
+
+	if raised then
+		local newEffect = checkPointReachedEffect:Clone()
+		newEffect:PivotTo(flag.Main.CFrame)
+		newEffect.Parent = workspace
+
+		game:GetService("Debris"):AddItem(newEffect, 5)
+
+		for _, particle: ParticleEmitter in newEffect:GetDescendants() do
+			if not particle:IsA("ParticleEmitter") then
+				continue
+			end
+
+			particle:Emit(particle:GetAttribute("EmitCount") or 1)
+		end
+
+		soundManager:playSound("Checkpoint1", { position = flag.Main })
+		soundManager:playSound("Checkpoint2", { position = flag.Main })
+
+		-- play effects
+	end
+end
+
+local function handleCheckPointsFlag()
+	local flagsParent = workspace.Checkpoints
+	for i = 1, #flagsParent:GetChildren(), 1 do
+		local flag = flagsParent[i]
+		table.insert(checkPointFlags, flag)
+
+		handleFlag(i, false)
+	end
+end
+
 --= Job API =--
 
 --= Job Initializers =--
@@ -583,20 +633,33 @@ function enviormentManager:InitAsync(): nil
 	attachmentHandler()
 	leadUserToPairMakers()
 	handleDropoffPrompts()
+	handleCheckPointsFlag()
+
+	replicator:listen("progress_manager", function(action, arg)
+		print(action, arg)
+		if action == "finsihedWorld" then
+			soundManager:playSound("WorldComplete")
+		elseif action == "reachedCheckpoint" then
+			print("sexy cool")
+			handleFlag(arg.index, arg.raised)
+		end
+	end)
 
 	replicator:listen("enviorment_manager", function(action, arg)
 		if action == "claimCoin" then
 			handleCoin(arg.coin, arg.visible)
-		elseif action == "resetCoins" then
+		elseif action == "reset" then
 			for _, coin in coinsParent:GetChildren() do
 				handleCoin(coin, true)
 				coin:PivotTo(coin:GetAttribute("_originalPivot"))
+			end
+
+			for idx, _ in checkPointFlags do
+				handleFlag(idx, false)
 			end
 		end
 	end)
 end
 
-
 --= Return Job =--
 return enviormentManager
-

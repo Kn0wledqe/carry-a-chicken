@@ -107,9 +107,8 @@ function death.initialize(HUD): nil
 			pairAgainButton.TextLabel.Text = `Pair Again ({arg or 0}/2)`
 		end
 	end)
-	GUIManager:registerGui(deathFrame, death, {closePosition = UDim2.fromScale(0.5, 1.8)})
+	GUIManager:registerGui(deathFrame, death, { closePosition = UDim2.fromScale(0.5, 1.8) })
 	GUIManager.initializeFrame(deathFrame.Name)
-
 end
 function death.onOpened(): nil
 	death.frame.PairAgain.TextLabel.Text = "Pair Again (0/2)"

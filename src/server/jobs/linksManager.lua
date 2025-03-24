@@ -82,6 +82,16 @@ local function setbillboardAvaterImage(avaterHolder: BillboardGui, playerID: num
 	avater.Image = `rbxthumb://type=AvatarHeadShot&id={playerID}&w=420&h=420`
 end
 
+local function enableParticles(model, enable)
+	for _, effect in model:FindFirstChild("Position"):GetDescendants() do
+		if not effect:IsA("ParticleEmitter") then
+			continue
+		end
+
+		effect.Enabled = enable
+	end
+end
+
 local function handleLinker(model)
 	print(model)
 	local players = {
@@ -171,7 +181,8 @@ local function handleLinker(model)
 			"startCountdown",
 			{ startsOn = timeToStart, pair = players.chicken, worldThereshold = worldUnlocked }
 		)
-
+		enableParticles(player_hitbox, true)
+		enableParticles(chicken_hitbox, true)
 		while task.wait() do
 			local timeLeft = math.max(0, timeToStart - os.time())
 			if timeLeft == 0 then
@@ -197,11 +208,10 @@ local function handleLinker(model)
 		local selectedWorld = CHECK_POINTS[selectedIndex]
 		local world
 
-	
 		if selectedIndex and selectedWorld then
 			world = selectedWorld.spawnPoint
 		end
-	
+
 		replicator:sendToPlayers("linking_manager", { players.chicken, players.player }, "reset")
 		linkedClass.new(players.player, players.chicken, selectedIndex, world)
 	end
@@ -238,6 +248,7 @@ local function handleLinker(model)
 			updateAppearance()
 
 			smoothTween.play(glass, DOOR_TWEEN, glassData[glass].contracted)
+			enableParticles(hitbox, false)
 		end)
 	end
 

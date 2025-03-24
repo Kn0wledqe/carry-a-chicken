@@ -41,6 +41,8 @@ local camera = workspace.CurrentCamera
 local pairHighlightModel = replicatedStorage.assets.PairHighlight
 local controls = require(localPlayer.PlayerScripts.PlayerModule):GetControls()
 
+local spawnEffect = replicatedStorage.assets.effects.Spawn
+
 --= Constants =--
 local FREEZE_ACTION = "FREEZE_MOVEMENT"
 local FREEZE_JUMP_ACTION = "FREEZE_JUMP_MOVEMENT"
@@ -205,6 +207,25 @@ function linkManager:InitAsync(): nil
 				workspace.Gravity = LINKED_GRAVITY
 			end
 
+			local part = localPlayer.Character.PrimaryPart
+			if identiferFunctions.isChicken() then
+				part = pair.Character.PrimaryPart
+			end
+
+			local newEffect = spawnEffect:Clone()
+			newEffect:PivotTo(part.CFrame)
+			newEffect.Parent = workspace
+
+			game:GetService("Debris"):AddItem(newEffect, 5)
+
+			for _, particle: ParticleEmitter in newEffect:GetDescendants() do
+				if not particle:IsA("ParticleEmitter") then
+					continue
+				end
+
+				particle:Emit(particle:GetAttribute("EmitCount") or 1)
+			end
+
 			--enableHighlight(false)
 		elseif action == "picked" then
 			soundManager:playSound("PickUp")
@@ -258,6 +279,16 @@ function linkManager:InitAsync(): nil
 			enableHighlight(false)
 		else
 			enableHighlight(true)
+		end
+	end)
+
+	task.spawn(function()
+		while task.wait(math.random(15, 20)) do
+			if not identiferFunctions.isLinked() then
+				continue
+			end
+
+			soundManager:playSound("ChickenCall")
 		end
 	end)
 end

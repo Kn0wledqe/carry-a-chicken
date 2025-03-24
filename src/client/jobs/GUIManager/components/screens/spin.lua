@@ -26,6 +26,7 @@ local notificationManager = requireInitialized(script.Parent.Parent.notification
 local replicator = requireInitialized("jobs/net/replicator")
 local helperFunctions = requireInitialized("utils/helperFunctions")
 
+local soundManager = requireInitialized("jobs/soundManager")
 --= Classes =--
 
 --= Modules & Config =--
@@ -73,11 +74,13 @@ end
 local function initializeMoneyMakers(buttons)
 	GUIManager.addHover(buttons["10"], nil, nil, true)
 	GUIManager.addClick(buttons["10"], function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptProductPurchase(localPlayer, SHOP_CONFIG.DEV_PRODUCTS.WHEEL_SPINS[10])
 	end)
 
 	GUIManager.addHover(buttons["5"], nil, nil, true)
 	GUIManager.addClick(buttons["5"], function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptProductPurchase(localPlayer, SHOP_CONFIG.DEV_PRODUCTS.WHEEL_SPINS[5])
 	end)
 end

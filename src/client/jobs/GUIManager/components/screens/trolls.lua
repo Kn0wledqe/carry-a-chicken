@@ -22,6 +22,7 @@ local trolls = {}
 --= Jobs =--
 local GUIManager = requireInitialized(script.Parent.Parent.Parent)
 
+local soundManager = requireInitialized("jobs/soundManager")
 --= Classes =--
 
 --= Modules & Config =--
@@ -53,6 +54,7 @@ local function initializeTrolls()
 		end
 
 		initializeButton(button, function()
+			soundManager:playSound("OpenRobuxPrompt")
 			marketplacService:PromptProductPurchase(localPlayer, devproductid)
 		end)
 	end

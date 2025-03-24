@@ -38,12 +38,12 @@ local players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local userInputService = game:GetService("UserInputService")
 local contextActionService = game:GetService("ContextActionService")
-
+local replicatedStorage = game:GetService("ReplicatedStorage")
 local tweenService = game:GetService("TweenService")
-
 
 --= Object References =--
 local localPlayer = players.LocalPlayer
+local jumpEffect = replicatedStorage.assets.effects.PlayerJumpLandDust
 
 --= Constants =--
 --local JUMP_FORCE = Vector3.new(0, 1500, 0)
@@ -66,7 +66,6 @@ local function getJumpVelocity()
 end
 
 local function initializeChickenControls()
-
 	local function onJumpRequest()
 		--print("jumpping yo")
 		if not identiferFunctions.isChicken() then
@@ -102,7 +101,6 @@ local function initializeChickenControls()
 		onJumpRequest()
 	end)
 
-	
 	--[[
 	if userInputService.TouchEnabled then
 		local JumpButton: ImageButton =
@@ -193,6 +191,36 @@ function controlManager:InitAsync(): nil
 			sound = sound[math.random(1, #sound)]
 
 			soundManager:playSound(sound)
+			task.spawn(function()
+				local humanoidRootPart = localPlayer.Character:WaitForChild("HumanoidRootPart")
+				if identiferFunctions.isChicken() then
+					local pair = linkManager:getPair()
+					humanoidRootPart = pair.Character:WaitForChild("HumanoidRootPart")
+				end
+
+				local params = RaycastParams.new()
+				params.FilterDescendantsInstances = { humanoidRootPart.Parent }
+				params.FilterType = Enum.RaycastFilterType.Exclude
+
+				local position = workspace:Raycast(humanoidRootPart.Position, Vector3.new(0, -100, 0), params)
+				if not position then
+					return
+				end
+				position = position.Position
+
+				local effect = jumpEffect:Clone()
+				effect.Position = position
+				effect.Parent = workspace
+
+				for _, particle: ParticleEmitter in effect:GetDescendants() do
+					if not particle:IsA("ParticleEmitter") then
+						continue
+					end
+
+					particle:Emit(particle:GetAttribute("EmitCount") or 1)
+				end
+			end)
+
 			if identiferFunctions.isChicken() then
 				local animator: Animator = localPlayer.Character.Humanoid.Animator
 				animator:LoadAnimation(wingFlapChickenAnimation):Play()

@@ -92,6 +92,7 @@ local function initializeCoins()
 		local gamepassID = SHOP_CONFIG.DEV_PRODUCTS.COINS[tonumber(amount)]
 
 		initializeButton(coinHolder.Buy, function()
+			soundManager:playSound("OpenRobuxPrompt")
 			marketplacService:PromptProductPurchase(localPlayer, gamepassID)
 		end)
 	end
@@ -111,6 +112,7 @@ local function initializeSkins()
 		skinHolder.ImageLabel.Image = skinInfo.render_image
 
 		initializeButton(skinHolder.Buy, function()
+			soundManager:playSound("OpenRobuxPrompt")
 			marketplacService:PromptGamePassPurchase(localPlayer, skinInfo.gamepassID)
 		end)
 	end
@@ -122,28 +124,35 @@ local function initializeGamepasses(hud)
 	local gamepasses = container.Gamepasses
 
 	initializeButton(starterpack.Buy, function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.STARTERPACK)
 	end)
 
 	initializeButton(gamepasses.VIP.Buy, function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.VIP)
 	end)
 	initializeButton(hud.Container.Screen.Deals.VIP, function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.VIP)
 	end)
 
 	initializeButton(gamepasses.InfiniteRevives.Buy, function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.INFINITE_REVIVES)
 	end)
 	initializeButton(hud.Container.Screen.Deals.infiniteRevives, function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.INFINITE_REVIVES)
 	end)
 
 	initializeButton(gamepasses.DoubleWingStrength.Buy, function()
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.DOUBLE_WING_STRENGTH)
 	end)
 
 	initializeButton(hud.Container.Screen.Deals.infiniteRevives, function() -- place mine
+		soundManager:playSound("OpenRobuxPrompt")
 		marketplacService:PromptGamePassPurchase(localPlayer, SHOP_CONFIG.GAMEPASSES.INFINITE_REVIVES)
 	end)
 end

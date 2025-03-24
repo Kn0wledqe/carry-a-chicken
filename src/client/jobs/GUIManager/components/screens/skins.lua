@@ -86,7 +86,6 @@ end
 --= Job Initializers =--
 function initializeSkinStands()
 	for _, skinItem in skinStands:GetChildren() do
-		
 		local info = SKINS_CONFIG[tonumber(skinItem.Name)]
 		if not info then
 			continue
@@ -98,6 +97,7 @@ function initializeSkinStands()
 		proxmityPrompt.ObjectText = info.title
 
 		proxmityPrompt.TriggerEnded:Connect(function(playerWhoTriggered)
+			soundManager:playSound("OpenRobuxPrompt")
 			marketplacService:PromptGamePassPurchase(playerWhoTriggered, info.gamepassID)
 		end)
 		--skinStandsPrompts[info.ID] = { proxmityPrompt, {} }

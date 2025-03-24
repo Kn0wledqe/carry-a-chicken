@@ -140,6 +140,13 @@ local function initializeProgressIndicators()
 				print("Surpassed", part.Parent.Name, part.Name)
 				game:GetService("AnalyticsService")
 					:LogOnboardingFunnelStepEvent(player, identifierPoint, `Surpassed {part.Parent.Name}_{part.Name}`)
+
+				replicator:sendToPlayer(
+					"progress_manager",
+					player,
+					"reachedCheckpoint",
+					{ index = identifierPoint - 2, raised = true }
+				)
 			end
 		end)
 	end
@@ -148,7 +155,7 @@ end
 --= Job API =--
 function enviormentManager.resetCoins(player: Player): nil
 	claimedCoins[player] = {}
-	replicator:sendToPlayer("enviorment_manager", player, "resetCoins")
+	replicator:sendToPlayer("enviorment_manager", player, "reset")
 end
 
 function enviormentManager.resetProgress(player: Player)

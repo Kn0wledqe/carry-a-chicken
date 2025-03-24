@@ -24,6 +24,7 @@ local replicator = requireInitialized("replicator")
 local GUIManager = require(script.Parent.Parent)
 
 local checkpoint = requireInitialized(script.Parent.screens.checkpoint)
+local soundManager = requireInitialized("jobs/soundManager")
 
 --= Classes =--
 
@@ -56,13 +57,13 @@ function link.initialize(HUD): nil
 		countDownText.Visible = false
 		if thread then
 			task.cancel(thread)
-            thread = nil
+			thread = nil
 		end
 		GUIManager:closeGui("Checkpoint")
 	end, true)
 
 	replicator:listen("linking_manager", function(action, info)
-        print(action)
+		print(action)
 		if action == "joined" then
 			exitButton.Visible = true
 		elseif action == "startCountdown" then
@@ -74,7 +75,6 @@ function link.initialize(HUD): nil
 						return
 					end
 
-
 					countDownText.Text = `{timeLeft}s before starting...`
 				end
 			end)
@@ -83,11 +83,12 @@ function link.initialize(HUD): nil
 				checkpoint.setInfo(info.pair, info.worldThereshold)
 				GUIManager:openGui("Checkpoint")
 			end
+			--soundManager:playSound("MachineCharge")
 		elseif action == "stopCountdown" then
-            print("done! called!")
+			print("done! called!")
 			if thread then
 				task.cancel(thread)
-                thread = nil
+				thread = nil
 			end
 
 			countDownText.Visible = false
