@@ -93,7 +93,6 @@ local function enableParticles(model, enable)
 end
 
 local function handleLinker(model)
-	print(model)
 	local players = {
 		chicken = nil,
 		player = nil,
@@ -105,6 +104,7 @@ local function handleLinker(model)
 	local chicken_hitbox = model:WaitForChild("ChickenHitbox")
 
 	local player_glass = model:WaitForChild("PlayerGlass")
+	print(model)
 	local chicken_glass = model:WaitForChild("ChickenGlass")
 
 	local function storeGlassData(glass: Part)

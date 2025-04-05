@@ -527,10 +527,11 @@ end
 local function handleDropoffPrompts()
 	local function updatePrompts()
 		for _, dropOff in workspace.Map.Obby.Special.DropPoints:GetChildren() do
-			local hitbox = dropOff.Hitbox
+			local hitbox = dropOff:WaitForChild("Hitbox")
 			if not hitbox then
 				continue
 			end
+
 
 			local proxmity = hitbox:FindFirstChildOfClass("ProximityPrompt")
 			if not proxmity then
@@ -572,7 +573,7 @@ end
 
 local function handleFlag(index, raised)
 	local flag = checkPointFlags[index]
-	print(index, flag, raised)
+	--print(index, flag, raised)
 	if not flag then
 		return
 	end
@@ -621,6 +622,7 @@ end
 
 --= Job Initializers =--
 function enviormentManager:InitAsync(): nil
+	--[[
 	for _, model in workspace.Map.Obby.Special.GateSets:GetChildren() do
 		handleGate(model)
 	end
@@ -628,6 +630,7 @@ function enviormentManager:InitAsync(): nil
 	for _, model in workspace.Map.Obby.Special.ElevatorsSets:GetChildren() do
 		handleElevator(model)
 	end
+	]]
 
 	handleCoinsFloat()
 	attachmentHandler()

@@ -28,10 +28,17 @@ local dataManager = requireInitialized("jobs/dataManager")
 --= Modules & Config =--
 local SHOP_CONFIG = requireInitialized(game.ReplicatedStorage.config.shop)
 
+local zonePlus = require(game.ReplicatedStorage.lib.zone)
+
+
 --= Roblox Services =--
 local runService = game:GetService("RunService")
 local marketplactService = game:GetService("MarketplaceService")
+local players = game:GetService("Players")
+
 --= Object References =--
+local trigger = workspace:WaitForChild("Map"):WaitForChild("Spawn"):WaitForChild("Potions"):WaitForChild("Trigger")
+local localPlayer = players.LocalPlayer
 
 --= Constants =--
 
@@ -116,6 +123,23 @@ function handlePotion()
 	end
 end
 
+local function initializeWorldTrigger()
+	local zone = zonePlus.new(trigger)
+	zone.playerEntered:Connect(function(player)
+		if player ~= localPlayer then
+			return
+		end
+		GUIManager:openGui("Potions")
+	end)
+
+	zone.playerExited:Connect(function(player)
+		if player ~= localPlayer then
+			return
+		end
+		GUIManager:closeGui("Potions")
+	end)
+end
+
 --= Job Initializers =--
 function potions.initialize(HUD): nil
 	local potionsFrame = HUD.Container.Frames:WaitForChild("Potions")
@@ -125,6 +149,7 @@ function potions.initialize(HUD): nil
 	potions.template = potions.parent.Template
 	potions.template.Parent = nil
 
+	initializeWorldTrigger()
 	handleStats()
 	handlePotion()
 

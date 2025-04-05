@@ -174,7 +174,7 @@ end
 
 function GUIManager.initializeFrame(guiName, button)
 	local frame = framesFolder:FindFirstChild(guiName)
-	print(frame)
+--	print(frame)
 	if not frame then
 		return
 	end
@@ -205,9 +205,9 @@ function GUIManager.initializeFrame(guiName, button)
 end
 
 function GUIManager:openGui(ID)
-	print(ID)
+	--print(ID)
 	local frame = framesFolder:FindFirstChild(ID)
-	print(frame)
+--	print(frame)
 	if not frame or not frame:GetAttribute("_loaded") then
 		return
 	end
